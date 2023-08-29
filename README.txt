@@ -80,3 +80,5 @@ Services//folder
         PasswordService//file
             .Hash Password
             .Very Hash Password
+
+            "Server Admin log in: academyblogAdmin Password: AcademyBlogPassword"
