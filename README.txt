@@ -46,14 +46,14 @@ Model//folder
 
 -----------------------Items that will be saved to our database DB are above----------------------
 
-    LoginModel
+    LoginModelDTO
         string Username
         string password
-    CreateAccountModel
+    CreateAccountModelDTO
         int ID = 0
         string Username
         string password
-    PasswordModel
+    PasswordModelDTO
         string Salt
         string Hash
 
