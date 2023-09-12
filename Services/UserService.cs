@@ -6,11 +6,24 @@ using BlogBackEndL.Models;
 using BlogBackEndL.Models.DTO;
 using BlogBackEndL.Services.Context;
 using System.Security.Cryptography;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Reflection.Metadata.Ecma335;
+using Azure.Identity;
 
 namespace BlogBackEndL.Services
 {
-    public class UserService
+    public class UserService : ControllerBase
     {
+
+        public IEnumerable<UserModel> GetAllUsers()
+        {
+            return _context.UserInfor;
+        }
+
         //Create a variable
         private readonly DataContext _context;
         //create a constructor
@@ -54,7 +67,7 @@ namespace BlogBackEndL.Services
 
                 var newHashedPassword = HashPassword(UserToAdd.Password);
 
-                newUser.Id = UserToAdd.Id;
+                // newUser.Id = UserToAdd.Id;
 
                 newUser.Username = UserToAdd.Username;
 
@@ -62,7 +75,7 @@ namespace BlogBackEndL.Services
                 newUser.Hash = newHashedPassword.Hash;
 
                 _context.Add(newUser);
-                _context.SaveChanges();
+                result = _context.SaveChanges() != 0;
             }
             return result;
             //if they do not exist we then need to add account
@@ -111,5 +124,67 @@ namespace BlogBackEndL.Services
             var newHash = Convert.ToBase64String(rfc2898DeriveBytes.GetBytes(256));
             return newHash == StoredHash;
         }
+
+        public UserModel GetUserByUsername(string? username)
+        {
+            return _context.UserInfor.SingleOrDefault(user => user.Username == username);
+        }
+
+       public UserModel GetUserByID(int ID)
+       {
+        return _context.UserInfor.SingleOrDefault(user => user.Id == ID);
+       }
+
+        public IActionResult Login(LoginDTO user)
+        {
+            IActionResult Result = Unauthorized();
+            if (DoesUserExist(user.Username))
+            {
+                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345"));
+                var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+                var tokeOptions = new JwtSecurityToken(
+                    issuer: "https://localhost:5001",
+                    audience: "https://localhost:5001",
+                    claims: new List<Claim>(),
+                    expires: DateTime.Now.AddMinutes(30),
+                    signingCredentials: signinCredentials
+                );
+                var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
+                Result = Ok(new { Token = tokenString });
+            }
+            return Result;
+        }
+
+        public bool DeleteUser(string Username)
+        {
+            //This on is sending over just the username
+            //Then you have to get the object and then update
+
+            UserModel foundUser = GetUserByUsername(Username);
+            bool result = false;
+            if(foundUser != null)
+            {
+                //Found user
+                foundUser.Username = Username;
+                _context.Remove<UserModel>(foundUser);
+                result = _context.SaveChanges() != 0;
+            }
+           return result;
+        }
+
+        public bool UpdateUsername (int id, string Username)
+        {
+          UserModel foundUser = GetUserByID(id);
+          bool result = false;
+          if(foundUser != null)
+          {
+            foundUser.Username = Username;
+            _context.Update<UserModel>(foundUser);
+            result = _context.SaveChanges() != 0;
+          }
+          return result;
+        }
+
+       
     }
 }
