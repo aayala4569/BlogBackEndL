@@ -67,7 +67,7 @@ namespace BlogBackEndL.Controllers
 
          public bool UpdateBlogItems(BlogitemModel BlogUpdate)
          {
-            return _data.UpdateUsername(BlogUpdate);
+            return _data.UpdateBlogItems(BlogUpdate);
          }
         //Delete blog items
         [HttpPost("DeleteBlogItem/{BlogItemToDelete}")]
@@ -75,6 +75,14 @@ namespace BlogBackEndL.Controllers
         public bool DeleteBlogItem(BlogitemModel BlogDelete)
         {
             return _data.DeleteBlogItem(BlogDelete);
+        }
+
+        //GetPublishedBlogItems
+        [HttpGet("GetPublishedItems")]
+
+        public IEnumerable<BlogitemModel> GetPublishedItems()
+        {
+            return _data.GetPublishedItems();
         }
     }
 }

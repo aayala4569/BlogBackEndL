@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BlogBackEndL.Models;
 using BlogBackEndL.Services.Context;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace BlogBackEndL.Services
 {
@@ -28,34 +29,58 @@ namespace BlogBackEndL.Services
          return result;
         }
 
-        internal bool DeleteBlogItem(BlogitemModel blogDelete)
+        public bool DeleteBlogItem(BlogitemModel BlogDelete)
         {
-            throw new NotImplementedException();
+            _context.Update<BlogitemModel>(BlogDelete);
+            return _context.SaveChanges() != 0;
         }
 
-        internal IEnumerable<BlogitemModel> GetAllBlogItems()
+        public IEnumerable<BlogitemModel> GetAllBlogItems()
         {
-            throw new NotImplementedException();
+            return _context.BlogInfo;
         }
 
-        internal IEnumerable<BlogitemModel> GetItemsByCategory(string category)
+        public IEnumerable<BlogitemModel> GetItemsByCategory(string Category)
         {
-            throw new NotImplementedException();
+            return _context.BlogInfo.Where(item => item.Category == Category);
         }
 
-        internal IEnumerable<BlogitemModel> GetItemsByDate(string date)
+        public IEnumerable<BlogitemModel> GetItemsByDate(string Date)
         {
-            throw new NotImplementedException();
+            return _context.BlogInfo.Where(item => item.Date == Date);
         }
 
-        internal List<BlogitemModel> GetItemsByTag(string tag)
+        public List<BlogitemModel> GetItemsByTag(string Tag)
         {
-            throw new NotImplementedException();
+            //this will create a tag for our items Ex: "Tag1, Tag2, Tag3"
+          List<BlogitemModel> AllBlogsWithTag = new List<BlogitemModel>();
+          var allItems = GetAllBlogItems().ToList();//Ex Tag: {Tag: "Tag1",Tag: "Tag2", Tag: "Tag3"}
+          for(int i = 0; i < allItems.Count; i++)
+          {
+           BlogitemModel Item = allItems[i];
+           var itemArr = Item.Tag.Split(','); //{"Tag1", "Tag2"}
+
+           for(int j = 0; j < itemArr.Length; j++)
+           {
+            if(itemArr[j].Contains(Tag))
+            {
+                AllBlogsWithTag.Add(Item);
+            }
+           }
+          }
+          return AllBlogsWithTag;
         }
 
-        internal bool UpdateUsername(BlogitemModel blogUpdate)
+        public bool UpdateBlogItems(BlogitemModel BlogUpdate)
         {
-            throw new NotImplementedException();
+            _context.Update<BlogitemModel>(BlogUpdate);
+            return _context.SaveChanges() !=0 ;
+        }
+
+        public IEnumerable<BlogitemModel> GetPublishedItems()
+        {
+            return _context.BlogInfo.Where(item => item.IsPublished);
         }
     }
 }
+
